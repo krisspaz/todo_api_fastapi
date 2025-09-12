@@ -30,7 +30,7 @@ def get_db():
 @app.post("/tareas/", response_model=TareaResponse, summary="Crear tarea", tags=["Tareas"])
 def crear_tarea(tarea: TareaCreate, db: Session = Depends(get_db)):
     """Crea una nueva tarea en la base de datos."""
-    db_tarea = Tarea(**tarea.dict())
+    db_tarea = Tarea(**tarea.model_dump())
     db.add(db_tarea)
     db.commit()
     db.refresh(db_tarea)
@@ -47,7 +47,7 @@ def actualizar_tarea(tarea_id: int, tarea: TareaCreate, db: Session = Depends(ge
     db_tarea = db.query(Tarea).filter(Tarea.id == tarea_id).first()
     if not db_tarea:
         raise HTTPException(status_code=404, detail="Tarea no encontrada")
-    for key, value in tarea.dict().items():
+    for key, value in tarea.model_dump().items():
         setattr(db_tarea, key, value)
     db.commit()
     db.refresh(db_tarea)
@@ -71,10 +71,10 @@ def exportar_excel(db: Session = Depends(get_db)):
         return {"message": "No hay tareas para exportar"}
     data = [
         {
-            "id": t.id,
-            "titulo": t.titulo,
-            "descripcion": t.descripcion,
-            "completada": t.completada
+            "id": getattr(t, "id", None),
+            "titulo": getattr(t, "titulo", ""),
+            "descripcion": getattr(t, "descripcion", ""),
+            "completada": getattr(t, "completada", False)
         } for t in tareas
     ]
     df = pd.DataFrame(data)
