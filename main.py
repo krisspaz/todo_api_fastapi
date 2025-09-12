@@ -69,14 +69,14 @@ def exportar_excel(db: Session = Depends(get_db)):
     tareas = db.query(Tarea).all()
     if not tareas:
         return {"message": "No hay tareas para exportar"}
-    data = [
-        {
+    data = []
+    for t in tareas:
+        data.append({
             "id": getattr(t, "id", None),
             "titulo": getattr(t, "titulo", ""),
             "descripcion": getattr(t, "descripcion", ""),
             "completada": getattr(t, "completada", False)
-        } for t in tareas
-    ]
+        })
     df = pd.DataFrame(data)
     archivo = "tareas.xlsx"
     df.to_excel(archivo, index=False)
